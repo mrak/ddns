@@ -1,0 +1,51 @@
+#!/bin/sh
+
+GETID="$(uuidgen)"
+ADDID="$(uuidgen)"
+REMOVEID="$(uuidgen)"
+
+get_old_ip() {
+    curl -s \
+         --ciphers RSA \
+         "https://api.dreamhost.com/?key=${KEY}&cmd=dns-list_records&unique_id=${GETID}" \
+    | awk -F"\t" "\$3 == '$RECORD' {print \$5}"
+}
+
+get_new_ip() {
+    IP="$(curl -s http://ipecho.net/plain)"
+    [ $? != 0 ] && IP="$(curl -s http://ip.42.pl/raw)"
+    [ $? != 0 ] && IP="$(curl -s http://icanhazip.com)"
+    [ $? != 0 ] && IP="$(curl -s http://ifconfig.me)"
+    [ $? = 0 ] && return
+    echo "$IP"
+}
+
+is_ip_address() {
+    expr "$1" : '^[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}$' >/dev/null
+    return $?
+}
+
+remove_dns_entry(){
+    curl -s \
+         --ciphers RSA \
+         "https://api.dreamhost.com/?key=${KEY}&cmd=dns-remove_record&unique_id=${REMOVEID}&record=${RECORD}&type=A&value=${1}&comment=${COMMENT}"
+}
+
+add_dns_entry(){
+    curl -s \
+         --ciphers RSA \
+         "https://api.dreamhost.com/?key=${KEY}&cmd=dns-add_record&unique_id=${ADDID}&record=${RECORD}&type=A&value=${1}&comment=${COMMENT}"
+}
+
+
+OLDIP="$(get_old_ip)"
+is_ip_address "$OLDIP" || exit 1
+NEWIP="$(get_new_ip)"
+is_ip_address "$NEWIP" || exit 1
+[ "$NEWIP" = "$OLDIP" ] && echo "IP is unchanged" && exit
+
+remove_dns_entry "$OLDIP"
+add_dns_entry "$NEWIP"
+echo "Old IP: $OLDIP"
+echo "New IP: $NEWIP"
+

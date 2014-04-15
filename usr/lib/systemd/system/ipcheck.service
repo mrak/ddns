@@ -1,0 +1,10 @@
+[Unit]
+Description=Checks for dynamic IP changes
+
+[Service]
+Nice=19
+EnvironmentFile=/etc/conf.d/ipcheck
+IOSchedulingClass=2
+IOSchedulingPriority=7
+ExecStart=/usr/bin/ipcheck
+
