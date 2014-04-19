@@ -8,7 +8,7 @@ get_old_ip() {
     curl -s \
          --ciphers RSA \
          "https://api.dreamhost.com/?key=${KEY}&cmd=dns-list_records&unique_id=${GETID}" \
-    | awk -F"\t" "\$3 == '$RECORD' {print \$5}"
+    | awk -F"\t" "\$3 == $RECORD {print \$5}"
 }
 
 get_new_ip() {
