@@ -8,3 +8,5 @@ IOSchedulingClass=2
 IOSchedulingPriority=7
 ExecStart=/usr/bin/ipcheck
 
+[Install]
+WantedBy=timer-daily.target
