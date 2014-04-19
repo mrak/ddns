@@ -8,7 +8,7 @@ get_old_ip() {
     curl -s \
          --ciphers RSA \
          "https://api.dreamhost.com/?key=${KEY}&cmd=dns-list_records&unique_id=${GETID}" \
-    | awk -F"\t" "\$3 == $RECORD {print \$5}"
+    | awk -F"\t" '$3 == "'$RECORD'" {print $5}'
 }
 
 get_new_ip() {
@@ -21,8 +21,13 @@ get_new_ip() {
 }
 
 is_ip_address() {
-    expr "$1" : '^[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}$' >/dev/null
-    return $?
+    if expr "$1" : '^[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}$' >/dev/null
+    then
+        return
+    else
+        echo "\"$1\" is not an ip address"
+        exit 1
+    fi
 }
 
 remove_dns_entry(){
@@ -39,13 +44,13 @@ add_dns_entry(){
 
 
 OLDIP="$(get_old_ip)"
-is_ip_address "$OLDIP" || exit 1
+is_ip_address "$OLDIP"
+echo "Old IP: $OLDIP"
 NEWIP="$(get_new_ip)"
-is_ip_address "$NEWIP" || exit 1
+is_ip_address "$NEWIP"
+echo "New IP: $NEWIP"
 [ "$NEWIP" = "$OLDIP" ] && echo "IP is unchanged" && exit
 
 remove_dns_entry "$OLDIP"
 add_dns_entry "$NEWIP"
-echo "Old IP: $OLDIP"
-echo "New IP: $NEWIP"
 
