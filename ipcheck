@@ -1,3 +1,3 @@
 #!/bin/sh
 
-wget -qO- --no-check-certificate "https://api.linode.com/?api_key=${KEY}\&api_action=domain.resource.update\&domainid=${DOMAINID}\&resourceid=${RESOURCEID}\&target=[remote_addr]"
+wget -qO- --no-check-certificate "https://api.linode.com/?api_key=${KEY}&api_action=domain.resource.update&domainid=${DOMAINID}&resourceid=${RESOURCEID}&target=[remote_addr]"
