@@ -1,4 +1,10 @@
 #!/bin/sh
 
-wget -4 -qO- --no-check-certificate "https://api.linode.com/?api_key=${KEY}&api_action=domain.resource.update&domainid=${DOMAINID}&resourceid=${RESOURCEIDA}&target=[remote_addr]"
-wget -6 -qO- --no-check-certificate "https://api.linode.com/?api_key=${KEY}&api_action=domain.resource.update&domainid=${DOMAINID}&resourceid=${RESOURCEIDAAAA}&target=[remote_addr]"
+curl -4 -s -X PUT \
+    -H "Authorization: Bearer ${APIKEY}" \
+    -d '{"target":"[remote_addr]"}' \
+    "https://api.linode.com/v4/domains/${DOMAINID}/records/${RECORDIDA}"
+curl -6 -s -X PUT \
+    -H "Authorization: Bearer ${APIKEY}" \
+    -d '{"target":"[remote_addr]"}' \
+    "https://api.linode.com/v4/domains/${DOMAINID}/records/${RECORDIDAAAA}"
