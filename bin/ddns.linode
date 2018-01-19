@@ -1,33 +1,44 @@
 #!/bin/sh
 
+if [ $# -ne 1 ]; then
+    echo "USAGE: $0 config_file"
+    exit 1
+fi
+
 FILE="$1"
 LOG_PREFIX="[$FILE]"
-source "$FILE"
+
+if [ -f "$FILE" ]; then
+    source "$FILE"
+else
+    echo "$FILE could not be read."
+    exit 1
+fi
 
 if [ -z "$TYPE" ]; then
     echo "$LOG_PREFIX TYPE is required but missing. Skipping."
-    exit
+    exit 1
 fi
 
 if [ -z "$RECORD_ID" ]; then
     echo "$LOG_PREFIX RECORD_ID is required but missing. Skipping."
-    exit
+    exit 1
 fi
 
 if [ -z "$DOMAIN_ID" ]; then
     echo "$LOG_PREFIX DOMAIN_ID is required but missing. Skipping."
-    exit
+    exit 1
 fi
 
 if [ -z "$API_KEY" ]; then
     echo "$LOG_PREFIX API_KEY is required but missing. Skipping."
-    exit
+    exit 1
 fi
 
 case "$TYPE" in
     A) FLAGS="-4" ;;
     AAAA) FLAGS="-6" ;;
-    *) echo "$LOG_PREFIX Unknown TYPE \"$TYPE\". Skipping."; exit ;;
+    *) echo "$LOG_PREFIX Unknown TYPE \"$TYPE\". Skipping."; exit 1;;
 esac
 
 echo "$LOG_PREFIX Updating $TYPE record with id '${RECORD_ID}' for domain with id '${DOMAIN_ID}'"
