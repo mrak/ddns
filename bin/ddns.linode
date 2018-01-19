@@ -46,3 +46,4 @@ curl $FLAGS -sS -X PUT \
     -H "Authorization: Bearer ${API_KEY}" \
     -d '{"target":"[remote_addr]"}' \
     "https://api.linode.com/v4/domains/${DOMAIN_ID}/records/${RECORD_ID}"
+echo
