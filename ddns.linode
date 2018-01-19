@@ -1,0 +1,37 @@
+#!/bin/sh
+
+FILE="$1"
+LOG_PREFIX="[$FILE]"
+source "$FILE"
+
+if [ -z "$TYPE" ]; then
+    echo "$LOG_PREFIX TYPE is required but missing. Skipping."
+    exit
+fi
+
+if [ -z "$RECORD_ID" ]; then
+    echo "$LOG_PREFIX RECORD_ID is required but missing. Skipping."
+    exit
+fi
+
+if [ -z "$DOMAIN_ID" ]; then
+    echo "$LOG_PREFIX DOMAIN_ID is required but missing. Skipping."
+    exit
+fi
+
+if [ -z "$API_KEY" ]; then
+    echo "$LOG_PREFIX API_KEY is required but missing. Skipping."
+    exit
+fi
+
+case "$TYPE" in
+    A) FLAGS="-4" ;;
+    AAAA) FLAGS="-6" ;;
+    *) echo "$LOG_PREFIX Unknown TYPE \"$TYPE\". Skipping."; exit ;;
+esac
+
+echo "$LOG_PREFIX Updating $TYPE record with id '${RECORD_ID}' for domain with id '${DOMAIN_ID}'"
+curl $FLAGS -sS -X PUT \
+    -H "Authorization: Bearer ${API_KEY}" \
+    -d '{"target":"[remote_addr]"}' \
+    "https://api.linode.com/v4/domains/${DOMAIN_ID}/records/${RECORD_ID}"

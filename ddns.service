@@ -4,7 +4,6 @@ Description=Checks for dynamic IP changes
 [Service]
 User=nobody
 Nice=19
-EnvironmentFile=/etc/conf.d/ipcheck
 IOSchedulingClass=2
 IOSchedulingPriority=7
-ExecStart=/usr/bin/ipcheck
+ExecStart=/usr/bin/ddns

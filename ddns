@@ -1,0 +1,9 @@
+#!/bin/sh
+
+ETC_DIR=/etc/ddns
+
+if [ -d "$ETC_DIR/linode" ]; then
+    for file in "$ETC_DIR"/linode/*; do
+        ddns.linode "$file"
+    done
+fi
