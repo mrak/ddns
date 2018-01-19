@@ -43,6 +43,7 @@ esac
 
 echo "$LOG_PREFIX Updating $TYPE record with id '${RECORD_ID}' for domain with id '${DOMAIN_ID}'"
 curl $FLAGS -sS -X PUT \
+    -H "Content-Type: application/json" \
     -H "Authorization: Bearer ${API_KEY}" \
     -d '{"target":"[remote_addr]"}' \
     "https://api.linode.com/v4/domains/${DOMAIN_ID}/records/${RECORD_ID}"
