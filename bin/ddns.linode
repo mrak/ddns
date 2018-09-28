@@ -9,7 +9,7 @@ FILE="$1"
 LOG_PREFIX="[$FILE]"
 
 if [ -f "$FILE" ]; then
-    source "$FILE"
+    . "$FILE"
 else
     echo "$FILE could not be read."
     exit 1
