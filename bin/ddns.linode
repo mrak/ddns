@@ -1,50 +1,105 @@
 #!/bin/sh
 
-if [ $# -ne 1 ]; then
-    echo "USAGE: $0 config_file"
-    exit 1
-fi
+RECORD=""
+DEFAULT_TYPE=""
+DEFAULT_API_KEY=""
+DEFAULT_DOMAIN_ID=""
+DEFAULT_RECORD_ID=""
 
-FILE="$1"
-LOG_PREFIX="[$FILE]"
+TYPE=""
+API_KEY=""
+DOMAIN_ID=""
+RECORD_ID=""
 
-if [ -f "$FILE" ]; then
-    . "$FILE"
-else
-    echo "$FILE could not be read."
-    exit 1
-fi
+log() {
+    prefix="$1"
+    shift
+    msg="$*"
+    echo "[$prefix] $msg"
+}
 
-if [ -z "$TYPE" ]; then
-    echo "$LOG_PREFIX TYPE is required but missing. Skipping."
-    exit 1
-fi
+apply() {
+    [ -z "$RECORD" ] || [ "$RECORD" = "defaults" ] && return
+    : "${TYPE:=$DEFAULT_TYPE}"
+    : "${API_KEY:=$DEFAULT_API_KEY}"
+    : "${DOMAIN_ID:=$DEFAULT_DOMAIN_ID}"
+    : "${RECORD_ID:=$DEFAULT_RECORD_ID}"
 
-if [ -z "$RECORD_ID" ]; then
-    echo "$LOG_PREFIX RECORD_ID is required but missing. Skipping."
-    exit 1
-fi
+    if [ -z "$TYPE" ]; then
+        log "$RECORD" "TYPE is required"
+        return
+    fi
 
-if [ -z "$DOMAIN_ID" ]; then
-    echo "$LOG_PREFIX DOMAIN_ID is required but missing. Skipping."
-    exit 1
-fi
+    if [ -z "$API_KEY" ]; then
+        log "$RECORD" "API_KEY is required"
+        return
+    fi
 
-if [ -z "$API_KEY" ]; then
-    echo "$LOG_PREFIX API_KEY is required but missing. Skipping."
-    exit 1
-fi
+    if [ -z "$DOMAIN_ID" ]; then
+        log "$RECORD" "DOMAIN_ID is required"
+        return
+    fi
 
-case "$TYPE" in
-    A) FLAGS="-4" ;;
-    AAAA) FLAGS="-6" ;;
-    *) echo "$LOG_PREFIX Unknown TYPE \"$TYPE\". Skipping."; exit 1;;
-esac
+    if [ -z "$RECORD_ID" ]; then
+        log "$RECORD" "RECORD_ID is required"
+        return
+    fi
 
-echo "$LOG_PREFIX Updating $TYPE record with id '${RECORD_ID}' for domain with id '${DOMAIN_ID}'"
-curl $FLAGS -sS -X PUT \
-    -H "Content-Type: application/json" \
-    -H "Authorization: Bearer ${API_KEY}" \
-    -d '{"target":"[remote_addr]"}' \
-    "https://api.linode.com/v4/domains/${DOMAIN_ID}/records/${RECORD_ID}"
-echo
+    case "$TYPE" in
+        A) IPV_FLAG="-4" ;;
+        AAAA) IPV_FLAG="-6" ;;
+        *) log "$RECORD" "TYPE=\"$TYPE\" not supported"
+           return
+           ;;
+    esac
+
+    log "$RECORD" "Updating $TYPE record with id '${RECORD_ID}' for domain with id '${DOMAIN_ID}'"
+    curl $IPV_FLAG -sS -X PUT \
+        -H "Content-Type: application/json" \
+        -H "Authorization: Bearer ${API_KEY}" \
+        -d '{"target":"[remote_addr]"}' \
+        "https://api.linode.com/v4/domains/${DOMAIN_ID}/records/${RECORD_ID}"
+}
+
+while read -r line
+do
+    case "$line" in
+        '#'*) continue ;;
+        '['*']')
+            apply
+            RECORD="${line#?}"
+            RECORD="${RECORD%?}"
+            TYPE=""
+            API_KEY=""
+            DOMAIN_ID=""
+            RECORD_ID=""
+            ;;
+        API_KEY=*)
+            if [ "$RECORD" = defaults ]; then
+                DEFAULT_API_KEY="${line#*=}"
+            else
+                API_KEY="${line#*=}"
+            fi ;;
+        DOMAIN_ID=*)
+            if [ "$RECORD" = defaults ]; then
+                DEFAULT_DOMAIN_ID="${line#*=}"
+            else
+                DOMAIN_ID="${line#*=}"
+            fi ;;
+        RECORD_ID=*)
+            if [ "$RECORD" = defaults ]; then
+                DEFAULT_RECORD_ID="${line#*=}"
+            else
+                RECORD_ID="${line#*=}"
+            fi ;;
+        TYPE=*)
+            if [ "$RECORD" = defaults ]; then
+                DEFAULT_TYPE="${line#*=}"
+            else
+                TYPE="${line#*=}"
+            fi ;;
+        *) continue ;;
+    esac
+done < "$1"
+
+apply

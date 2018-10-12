@@ -1,0 +1,11 @@
+[defaults]
+API_KEY=
+DOMAIN_ID=
+
+[AAAA-domain.tld]
+TYPE=AAAA
+RECORD_ID=
+
+[A-domain.tld]
+TYPE=A
+RECORD_ID=
